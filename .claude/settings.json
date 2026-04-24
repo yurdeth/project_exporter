@@ -1,0 +1,16 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "filesystem": {
+      "allowWrite": [
+        "./dist",
+        "./.claude"
+      ]
+    }
+  },
+  "permissions": {
+    "allowWrite": [],
+    "denyWrite": [],
+    "ask": []
+  }
+}

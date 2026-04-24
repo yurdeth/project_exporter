@@ -1,0 +1,88 @@
+<?php
+$basePath = __DIR__;
+$folders = [];
+foreach (scandir($basePath) as $item) {
+    if ($item === '.' || $item === '..' || $item === 'index.php') continue;
+    if (is_dir($basePath . DIRECTORY_SEPARATOR . $item)) $folders[] = $item;
+}
+sort($folders);
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyectos</title>
+    <style>
+{{CSS}}
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <h1>Proyectos <span class="count"><?= count($folders) ?></span></h1>
+        <?php if (!empty($folders)): ?>
+            <input type="text" class="search-input" id="searchInput" placeholder="Buscar proyecto..." oninput="filterProjects()">
+        <?php endif ?>
+    </div>
+
+    <?php if (empty($folders)): ?>
+        <div class="empty">No se encontraron carpetas de proyectos.</div>
+    <?php else: ?>
+        <div class="grid" id="projectGrid">
+            <?php foreach ($folders as $name): ?>
+                <div class="card" data-name="<?= htmlspecialchars(strtolower($name)) ?>" onclick="openExplorer('<?= htmlspecialchars($name, ENT_QUOTES) ?>')">
+                    <span class="icon">&#128193;</span>
+                    <div class="info">
+                        <div class="name"><?= htmlspecialchars($name) ?></div>
+                        <div class="action">Click para explorar y descargar</div>
+                    </div>
+                </div>
+            <?php endforeach ?>
+        </div>
+    <?php endif ?>
+
+    <!-- Explorer modal -->
+    <div class="overlay" id="explorerOverlay">
+        <div class="explorer">
+            <div class="explorer-header">
+                <h2><span>&#128193;</span> <span id="explorerTitle"></span></h2>
+                <button class="explorer-close" onclick="closeExplorer()">&times;</button>
+            </div>
+            <div class="breadcrumb" id="breadcrumb"></div>
+            <div class="sort-bar">
+                <button class="sort-btn active" data-sort="name-asc" onclick="changeSort('name-asc')">A-Z</button>
+                <button class="sort-btn" data-sort="name-desc" onclick="changeSort('name-desc')">Z-A</button>
+                <button class="sort-btn" data-sort="size-desc" onclick="changeSort('size-desc')">Peso ↓</button>
+                <button class="sort-btn" data-sort="size-asc" onclick="changeSort('size-asc')">Peso ↑</button>
+                <button class="sort-btn" data-sort="sel-first" onclick="changeSort('sel-first')">Sel. primero</button>
+                <button class="sort-btn" data-sort="desel-first" onclick="changeSort('desel-first')">No sel. primero</button>
+            </div>
+            <div class="master-row" id="masterRow">
+                <input type="checkbox" id="masterCheck" onchange="toggleAll(this.checked)">
+                <label for="masterCheck" id="masterLabel">Seleccionar todo</label>
+            </div>
+            <div class="explorer-body" id="explorerBody">
+                <div class="loading-state"><span class="spinner"></span>Cargando...</div>
+            </div>
+            <div class="explorer-footer">
+                <span class="summary" id="explorerSummary"></span>
+                <button class="btn-download" id="btnDownload" onclick="startDownload()">Descargar</button>
+            </div>
+        </div>
+    </div>
+    <!-- Progress modal -->
+    <div class="overlay" id="progressOverlay">
+        <div class="progress-modal">
+            <h2>Comprimiendo <span class="folder-name" id="progressName"></span></h2>
+            <div class="status-text" id="progressStatus"><span class="spinner"></span>Iniciando compresión en vivo...</div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="detail" id="progressDetail"></div>
+            <button id="progressClose" onclick="closeProgress()" style="display:none">Cerrar</button>
+        </div>
+    </div>
+
+<script>
+{{JS}}
+</script>
+</body>
+</html>
