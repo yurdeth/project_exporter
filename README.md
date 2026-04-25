@@ -40,12 +40,22 @@ dist/
 
 El proyecto depende de la biblioteca ZipStream para la generacion de ZIPs con streaming, empaquetada en el archivo `vendor.phar`.
 
+**Versiones de ZipStream y requisitos de PHP:**
+- `maennchen/zipstream-php:^0.5` - PHP 5.3+ (usado actualmente, sin type hints)
+- `maennchen/zipstream-php:^1.2` - PHP 7.1+ (tiene type hints que requieren parcheo)
+- `maennchen/zipstream-php:^2.2` - PHP 7.4+ (no compatible con este proyecto)
+- `maennchen/zipstream-php:^3.0` - PHP 8.1+ (no compatible con este proyecto)
+
 ## Requisitos del sistema
 
-- PHP 7.4 o superior
-- Extensiones PHP: `json`, `zip`
+- PHP 7.1 o superior
+- Extensiones PHP: `json`, `zip`, `mbstring`
 - Acceso a `shell_exec()` con comando `du` para calculo optimizado de tamanos
 - Permiso de escritura en directorio temporal del sistema para archivos de progreso
+
+### Dependencias
+
+- **ZipStream-PHP v0.5.2**: Compatible con PHP 5.3+ sin type hints
 
 ## Proceso de compilacion
 
@@ -87,7 +97,7 @@ El script genera el archivo `dist/index.php` que contiene:
 
 ### Paso 5: Copia de dependencias
 
-El archivo `vendor.phar` se copia al directorio `dist/` para accompanyar al archivo principal.
+El archivo `vendor.phar` se copia al directorio `dist/` para acompañar al archivo principal.
 
 ## Comandos de compilacion
 

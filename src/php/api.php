@@ -1,6 +1,5 @@
 <?php
 use ZipStream\ZipStream;
-use ZipStream\Option\Archive as ArchiveOptions;
 
 $basePath = __DIR__;
 $action = $_GET['action'] ?? null;
@@ -52,7 +51,9 @@ if ($action === 'browse') {
     }
     unset($f);
 
-    usort($folders, fn($a, $b) => strcasecmp($a['name'], $b['name']));
+    usort($folders, function($a, $b) {
+        return strcasecmp($a['name'], $b['name']);
+    });
 
     echo json_encode(['folders' => $folders, 'subpath' => $subpath]);
     exit;
@@ -80,7 +81,9 @@ if ($action === 'download' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         die('Carpeta no encontrada o ruta inválida.');
     }
 
-    $exclude = array_map(fn($p) => trim($p, '/ '), array_filter((array)$exclude));
+    $exclude = array_map(function($p) {
+        return trim($p, '/ ');
+    }, array_filter((array)$exclude));
 
     // Crear iterador - NO cargar archivos en memoria primero
     $iterator = new RecursiveIteratorIterator(
@@ -128,9 +131,11 @@ if ($action === 'download' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    $options = new ArchiveOptions();
-    $options->setSendHttpHeaders(true);
-    $options->setZeroHeader(true); // Forzar escribir headers inmediatamente
+    // Opciones para ZipStream v0.5.2
+    $options = array(
+        'sendHttpHeaders' => true,
+        'zeroHeader' => true,
+    );
 
     // Inicia la transmisión en vivo. El navegador recibirá el ZIP dinámicamente.
     $zip = new ZipStream($folder . '.zip', $options);

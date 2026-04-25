@@ -6,3 +6,5 @@ CLAUDE.md
 .DS_Store
 
 dist
+/vendor/
+.claude
