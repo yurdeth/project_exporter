@@ -41,17 +41,12 @@ echo "- composer/autoload_classmap.php: " . (isset($phar['composer/autoload_clas
 echo "- maennchen/zipstream-php/src/ZipStream.php: " . (isset($phar['maennchen/zipstream-php/src/ZipStream.php']) ? '[OK]' : '[FALTA]') . "\n";
 
 // Crear stub
-$stub = <<<PHP
+$stub = <<<'PHP'
 <?php
-// Phar stub para vendor.phar
-if (!class_exists('Phar')) {
-    return;
-}
 
 Phar::mapPhar('vendor.phar');
 
-// Cargar autoloader
-require 'phar://vendor.phar/autoload.php';
+require 'phar://' . __FILE__ . '/autoload.php';
 
 __HALT_COMPILER();
 PHP;
