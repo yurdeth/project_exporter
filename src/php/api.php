@@ -85,9 +85,20 @@ if ($action === 'download' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         return trim($p, '/ ');
     }, array_filter((array)$exclude));
 
-    // Crear iterador - NO cargar archivos en memoria primero
+    // Crear iterador personalizado que maneja directorios sin permisos
+    $safeIterator = new class($folderPath, RecursiveDirectoryIterator::SKIP_DOTS) extends RecursiveDirectoryIterator {
+        public function getChildren() {
+            try {
+                return parent::getChildren();
+            } catch (\UnexpectedValueException $e) {
+                // Directorio sin permisos, retornar un iterador vacío
+                return new RecursiveArrayIterator([]);
+            }
+        }
+    };
+
     $iterator = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($folderPath, RecursiveDirectoryIterator::SKIP_DOTS),
+        $safeIterator,
         RecursiveIteratorIterator::LEAVES_ONLY
     );
 
