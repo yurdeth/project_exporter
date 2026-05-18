@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 $srcDir = __DIR__ . '/src';
 $distDir = __DIR__ . '/dist';

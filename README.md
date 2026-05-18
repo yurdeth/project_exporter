@@ -69,7 +69,7 @@ Si no esta presente, debe ser generado o copiado desde una instalacion valida de
 
 ### Paso 2: Ejecucion del script de compilacion
 
-El script `build.php` realiza el siguiente proceso:
+El script `exporter` realiza el siguiente proceso:
 
 1. Lectura del archivo CSS (`src/css/style.css`)
 2. Lectura del archivo JavaScript (`src/js/app.js`)
@@ -104,7 +104,7 @@ El archivo `vendor.phar` se copia al directorio `dist/` para acompañar al archi
 Para compilar el proyecto, ejecute el siguiente comando en la raiz del proyecto:
 
 ```bash
-php build.php
+php exporter
 ```
 
 Este comando generara los archivos en el directorio `dist/`.
@@ -125,7 +125,7 @@ Una vez compilado, el directorio `dist/` contiene dos archivos esenciales:
 La variable `$basePath` en `exporter.php` determina el directorio raiz que sera explorado por la aplicacion. Por defecto, se establece en `__DIR__`, que apunta al directorio donde reside el archivo.
 
 Para modificar el directorio a explorar, puede:
-1. Editar la variable `$basePathSuffix` en `build.php` antes de compilar, o
+1. Editar la variable `$basePathSuffix` en `exporter` antes de compilar, o
 2. Editar la linea correspondiente en `dist/exporter.php` despues de compilar:
 
 ```php
