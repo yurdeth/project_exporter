@@ -32,8 +32,8 @@ src/
 
 ```
 dist/
-├── index.php    - Aplicacion completa compilada lista para produccion
-└── vendor.phar  - Dependencias empaquetadas (ZipStream)
+├── exporter.php  - Aplicacion completa compilada lista para produccion
+└── vendor.phar   - Dependencias empaquetadas (ZipStream)
 ```
 
 ### Dependencias
@@ -88,7 +88,7 @@ El resultado es una pagina HTML autocontenida con estilos y scripts embebidos.
 
 ### Paso 4: Generacion del archivo final
 
-El script genera el archivo `dist/index.php` que contiene:
+El script genera el archivo `dist/exporter.php` que contiene:
 
 - La logica PHP completa del backend
 - Las funciones auxiliares
@@ -115,16 +115,18 @@ Este comando generara los archivos en el directorio `dist/`.
 
 Una vez compilado, el directorio `dist/` contiene dos archivos esenciales:
 
-1. `index.php` - La aplicacion completa
+1. `exporter.php` - La aplicacion completa
 2. `vendor.phar` - Las dependencias
 
 ### Configuracion del servidor
 
 #### Configuracion de ruta base
 
-La variable `$basePath` en `index.php` determina el directorio raiz que sera explorado por la aplicacion. Por defecto, se establece en `__DIR__`, que apunta al directorio donde reside el archivo.
+La variable `$basePath` en `exporter.php` determina el directorio raiz que sera explorado por la aplicacion. Por defecto, se establece en `__DIR__`, que apunta al directorio donde reside el archivo.
 
-Para modificar el directorio a explorar, edite la linea correspondiente en `dist/index.php`:
+Para modificar el directorio a explorar, puede:
+1. Editar la variable `$basePathSuffix` en `build.php` antes de compilar, o
+2. Editar la linea correspondiente en `dist/exporter.php` despues de compilar:
 
 ```php
 $basePath = __DIR__; // Apunta al propio directorio
@@ -142,9 +144,9 @@ Asegurese de que el servidor web tenga permisos de:
 
 ### Instalacion en el servidor
 
-1. Copie los archivos `dist/index.php` y `dist/vendor.phar` al servidor
-2. Coloque `index.php` en la ubicacion deseada (puede renombrarlo si es necesario)
-3. Coloque `vendor.phar` en el mismo directorio que `index.php`
+1. Copie los archivos `dist/exporter.php` y `dist/vendor.phar` al servidor
+2. Coloque `exporter.php` en la ubicacion deseada (puede renombrarlo si es necesario)
+3. Coloque `vendor.phar` en el mismo directorio que `exporter.php`
 4. Configure el servidor web para servir el archivo PHP
 
 ### Servidor web

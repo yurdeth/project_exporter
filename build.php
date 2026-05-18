@@ -49,7 +49,7 @@ $finalCode .= "?>\n"; // Close PHP before dumping template
 $finalCode .= $html;
 
 // 4. Save to dist directory
-$distIndex = $distDir . '/index.php';
+$distIndex = $distDir . '/exporter.php';
 file_put_contents($distIndex, $finalCode);
 
 // 5. Copy the phar locally into dist
@@ -58,4 +58,4 @@ copy(__DIR__ . '/vendor.phar', $distDir . '/vendor.phar');
 echo "\n¡ÉXITO! Compilación terminada.\n";
 echo "=> Tu aplicación minificada está lista en: \n   " . $distDir . "\n";
 echo "=> Ruta base configurada como: __DIR__" . ($basePathSuffix ? " . '$basePathSuffix'" : "") . "\n";
-echo "Solo necesitas copiar 'dist/index.php' y 'dist/vendor.phar' a tu servidor y listo.\n";
+echo "Solo necesitas copiar 'dist/exporter.php' y 'dist/vendor.phar' a tu servidor y listo.\n";
