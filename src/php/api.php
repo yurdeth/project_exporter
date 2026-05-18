@@ -2,14 +2,14 @@
 use ZipStream\ZipStream;
 
 $basePath = __DIR__;
-$action = $_GET['action'] ?? null;
+$action = $_GET['op'] ?? null;
 
 // ─── API: Browse subfolders with sizes ───
 if ($action === 'browse') {
     header('Content-Type: application/json');
     set_time_limit(30);
-    $root = basename($_GET['root'] ?? '');
-    $subpath = trim($_GET['subpath'] ?? '', '/ ');
+    $root = basename($_GET['r'] ?? '');
+    $subpath = trim($_GET['s'] ?? '', '/ ');
     $rootPath = $basePath . DIRECTORY_SEPARATOR . $root;
     $realRoot = realpath($rootPath);
 
@@ -115,7 +115,7 @@ if ($action === 'download' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         die('No hay archivos para comprimir tras aplicar exclusiones.');
     }
 
-    $token = preg_replace('/[^a-z0-9_.]/i', '', $_GET['token'] ?? '');
+    $token = preg_replace('/[^a-z0-9_.]/i', '', $_GET['t'] ?? '');
     $progressFile = '';
     if ($token) {
         $progressFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $token . '.progress';
@@ -206,7 +206,7 @@ if ($action === 'download' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 // ─── API: Progress ───
 if ($action === 'progress') {
     header('Content-Type: application/json');
-    $token = preg_replace('/[^a-z0-9_.]/i', '', $_GET['token'] ?? '');
+    $token = preg_replace('/[^a-z0-9_.]/i', '', $_GET['t'] ?? '');
     $progressFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $token . '.progress';
 
     if (!file_exists($progressFile)) {

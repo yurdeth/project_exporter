@@ -97,7 +97,12 @@ function loadSubfolders(subpath) {
     const body = document.getElementById('explorerBody');
     body.innerHTML = '<div class="loading-state"><span class="spinner"></span>Cargando...</div>';
 
-    fetch('?action=browse&root=' + encodeURIComponent(currentRoot) + '&subpath=' + encodeURIComponent(subpath))
+    const params = new URLSearchParams();
+    params.append('op', 'browse');
+    params.append('r', currentRoot);
+    if (subpath) params.append('s', subpath);
+
+    fetch('?' + params.toString())
         .then(r => r.json())
         .then(data => {
             if (data.error) { body.innerHTML = '<div class="empty-state">' + data.error + '</div>'; updateMasterCheckbox(); return; }
@@ -356,7 +361,7 @@ function startDownload() {
     // Create a hidden form to trigger the native download stream via POST
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = '?action=download&token=' + token;
+    form.action = '?op=download&t=' + token;
     
     const inputFolder = document.createElement('input');
     inputFolder.type = 'hidden';
@@ -386,7 +391,11 @@ function pollProgress(token, exclCount) {
     const poll = () => {
         if (!document.getElementById('progressOverlay').classList.contains('active')) return;
 
-        fetch('?action=progress&token=' + encodeURIComponent(token))
+        const params = new URLSearchParams();
+        params.append('op', 'progress');
+        params.append('t', token);
+
+        fetch('?' + params.toString())
             .then(r => r.json())
             .then(data => {
                 if (data.status === 'compressing') {
