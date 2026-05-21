@@ -165,12 +165,13 @@ function showCreateUserForm() {
                         '<label>Contraseña</label>' +
                         '<input type="password" id="newPassword" placeholder="mínimo 6 caracteres">' +
                     '</div>' +
-                    '<div class="inline-form-group" style="flex: 0 0 auto;">' +
-                        '<label>Rol</label>' +
-                        '<select id="newRole" disabled>' +
-                            '<option value="user" selected>User</option>' +
-                        '</select>' +
-                    '</div>' +
+                    // Solo admin puede crear users, no necesita seleccionar rol
+                    // '<div class="inline-form-group" style="flex: 0 0 auto;">' +
+                    //     '<label>Rol</label>' +
+                    //     '<select id="newRole" disabled>' +
+                    //         '<option value="user" selected>User</option>' +
+                    //     '</select>' +
+                    // '</div>' +
                 '</div>' +
                 '<div class="inline-form-row">' +
                     '<button type="button" class="btn-cancel" onclick="hideInlineForm()">Cancelar</button>' +
@@ -238,12 +239,17 @@ function handleEditUser(id, currentUsername, currentRole) {
                         '<input type="text" id="editUsername" value="' + escAttr(currentUsername) + '">' +
                     '</div>' +
                     '<div class="inline-form-group">' +
-                        '<label>Rol</label>' +
-                        '<select id="editRole">' +
-                            '<option value="admin" ' + (currentRole === 'admin' ? 'selected' : '') + '>Admin</option>' +
-                            '<option value="user" ' + (currentRole === 'user' ? 'selected' : '') + '>User</option>' +
-                        '</select>' +
+                        '<label>Nueva contraseña (opcional)</label>' +
+                        '<input type="password" id="editPassword" placeholder="Dejar vacío para no cambiar">' +
                     '</div>' +
+                    // No se permite cambiar el rol
+                    // '<div class="inline-form-group">' +
+                    //     '<label>Rol</label>' +
+                    //     '<select id="editRole">' +
+                    //         '<option value="admin" ' + (currentRole === 'admin' ? 'selected' : '') + '>Admin</option>' +
+                    //         '<option value="user" ' + (currentRole === 'user' ? 'selected' : '') + '>User</option>' +
+                    //     '</select>' +
+                    // '</div>' +
                 '</div>' +
                 '<div class="inline-form-row">' +
                     '<button type="button" class="btn-cancel" onclick="hideInlineForm()">Cancelar</button>' +
@@ -258,17 +264,25 @@ function handleEditUser(id, currentUsername, currentRole) {
 
 function handleUpdateUser(id) {
     var username = document.getElementById('editUsername').value.trim();
-    var role = document.getElementById('editRole').value;
+    var password = document.getElementById('editPassword').value;
 
     if (!username) {
         alert('El nombre de usuario es requerido');
         return;
     }
 
+    if (password !== '' && password.length < 6) {
+        alert('La contraseña debe tener al menos 6 caracteres');
+        return;
+    }
+
     var formData = new FormData();
     formData.append('id', id);
     formData.append('username', username);
-    formData.append('role', role);
+    if (password !== '') {
+        formData.append('password', password);
+    }
+    // No se envía role — no se permite cambiar rol
 
     fetch('?op=user-update', {
         method: 'POST',

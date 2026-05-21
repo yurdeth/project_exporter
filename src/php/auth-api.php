@@ -161,7 +161,8 @@ if ($action === 'user-update') {
 
     $id = intval($_POST['id'] ?? 0);
     $username = trim($_POST['username'] ?? '');
-    $role = $_POST['role'] ?? '';
+    $password = $_POST['password'] ?? ''; // Contraseña opcional para cambiar
+    $role = $_POST['role'] ?? null; // Rol es opcional — si no se envía, no se modifica
 
     if ($id <= 0) {
         http_response_code(400);
@@ -181,7 +182,15 @@ if ($action === 'user-update') {
         exit;
     }
 
-    if ($role !== 'admin' && $role !== 'user') {
+    // Validar contraseña solo si se envía
+    if ($password !== '' && strlen($password) < 6) {
+        http_response_code(400);
+        echo json_encode(['error' => 'La contraseña debe tener al menos 6 caracteres']);
+        exit;
+    }
+
+    // Validar rol solo si se envía
+    if ($role !== null && $role !== 'admin' && $role !== 'user') {
         http_response_code(400);
         echo json_encode(['error' => 'Rol inválido']);
         exit;
@@ -208,10 +217,16 @@ if ($action === 'user-update') {
         }
     }
 
-    $updated = updateUser($id, [
-        'username' => $username,
-        'role' => $role
-    ]);
+    // Construir datos de actualización — solo incluir campos que se modifican
+    $updateData = ['username' => $username];
+    if ($role !== null) {
+        $updateData['role'] = $role;
+    }
+    if ($password !== '') {
+        $updateData['password'] = $password;
+    }
+
+    $updated = updateUser($id, $updateData);
 
     if ($updated) {
         echo json_encode(['success' => true]);
