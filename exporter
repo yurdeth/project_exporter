@@ -16,6 +16,70 @@ if (!file_exists(__DIR__ . '/vendor.phar')) {
 // Especifica la ruta relativa desde __DIR__ hacia la carpeta a exportar
 $basePathSuffix = ''; // Dejar vacío para usar __DIR__ únicamente
 
+// ─── DETECTAR --login ───
+$loginEnabled = false;
+$adminUser = '';
+$adminPass = '';
+
+foreach ($argv as $arg) {
+    if ($arg === '--login') {
+        $loginEnabled = true;
+        break;
+    }
+}
+
+// ─── PROMPT INTERACTIVO PARA ADMIN ───
+if ($loginEnabled) {
+    echo "\n=== Configuración de usuario administrador ===\n";
+
+    // Username
+    while (true) {
+        echo "Nombre de usuario admin: ";
+        $adminUser = trim(fgets(STDIN));
+        if (preg_match('/^[a-zA-Z0-9_-]{3,30}$/', $adminUser)) {
+            break;
+        }
+        echo "Error: el usuario debe tener entre 3 y 30 caracteres alfanuméricos, guiones o guiones bajos.\n";
+    }
+
+    // Password
+    $useStty = (PHP_OS !== 'WINNT' && file_exists('/usr/bin/stty'));
+
+    while (true) {
+        if ($useStty) {
+            system('stty -echo');
+        }
+        echo "Contraseña admin (mínimo 6 caracteres): ";
+        $adminPass = trim(fgets(STDIN));
+        if ($useStty) {
+            system('stty sane');
+        }
+        echo "\n";
+
+        if (strlen($adminPass) < 6) {
+            echo "Error: la contraseña debe tener al menos 6 caracteres.\n";
+            continue;
+        }
+
+        if ($useStty) {
+            system('stty -echo');
+        }
+        echo "Confirmar contraseña: ";
+        $adminPassConfirm = trim(fgets(STDIN));
+        if ($useStty) {
+            system('stty sane');
+        }
+        echo "\n";
+
+        if ($adminPass === $adminPassConfirm) {
+            break;
+        }
+        echo "Error: las contraseñas no coinciden.\n";
+    }
+
+    echo "\n";
+}
+
 // 1. Read components
 echo "Buscando componentes...\n";
 $css = trim(file_get_contents($srcDir . '/css/style.css'));
@@ -30,33 +94,122 @@ $template = file_get_contents($srcDir . '/php/template.phtml');
 $api = preg_replace('/^\s*\$basePath\s*=\s*[^;]+;\s*\n?/m', '', $api);
 $template = preg_replace('/^\s*\$basePath\s*=\s*[^;]+;\s*\n?/m', '', $template);
 
-// 2. Wrap HTML inside PHP properly with injected styles
+// 2. Read auth components if login is enabled
+if ($loginEnabled) {
+    echo "Cargando módulos de autenticación...\n";
+    $auth = trim(str_replace('<?php', '', file_get_contents($srcDir . '/php/auth.php')));
+    $authApi = trim(str_replace('<?php', '', file_get_contents($srcDir . '/php/auth-api.php')));
+    $authCss = trim(file_get_contents($srcDir . '/css/auth.css'));
+    $authJs = trim(file_get_contents($srcDir . '/js/auth.js'));
+
+    // Concatenate CSS and JS
+    $css = $css . "\n" . $authCss;
+    $js = $js . "\n" . $authJs;
+}
+
+// 3. Wrap HTML inside PHP properly with injected styles
 echo "Empalmando módulos...\n";
 
 // Replace variables in template
 $html = str_replace('{{CSS}}', $css, $template);
 $html = str_replace('{{JS}}', $js, $html);
 
-// 3. Assemble the final php file
+// 4. Assemble the final php file
 $finalCode = "<?php\n\n";
 $finalCode .= "// ─── CONFIGURACIÓN DE RUTA BASE ───\n";
-$finalCode .= "\$basePath = __DIR__ . " . var_export($basePathSuffix, true) . ";\n\n";
+$finalCode .= "\$basePath = __DIR__ . " . var_export($basePathSuffix, true) . ";\n";
+$finalCode .= "\$loginEnabled = " . ($loginEnabled ? 'true' : 'false') . ";\n\n";
 
 $finalCode .= "// ─── CARGA DE COMPOSER LIBRERÍAS (Zips/Etc) ───\n";
 $finalCode .= "if (file_exists(__DIR__ . '/vendor.phar')) {\n    require_once __DIR__ . '/vendor.phar';\n}\n\n";
+
+if ($loginEnabled) {
+    $finalCode .= "// ─── AUTH MODULE ───\n" . $auth . "\n\n";
+    $finalCode .= "// ─── AUTH INIT ───\n";
+    $finalCode .= "if (\$loginEnabled) {\n    authInit();\n}\n\n";
+}
+
 $finalCode .= "// ─── Helpers ───\n" . $helpers . "\n\n";
+
+if ($loginEnabled) {
+    $finalCode .= "// ─── AUTH API ───\n" . $authApi . "\n\n";
+}
+
 $finalCode .= "// ─── API Lógica ───\n" . $api . "\n\n";
 $finalCode .= "?>\n"; // Close PHP before dumping template
 $finalCode .= $html;
 
-// 4. Save to dist directory
+// 5. Save to dist directory
 $distIndex = $distDir . '/exporter.php';
 file_put_contents($distIndex, $finalCode);
 
-// 5. Copy the phar locally into dist
+// 6. Copy the phar locally into dist
 copy(__DIR__ . '/vendor.phar', $distDir . '/vendor.phar');
 
+// 7. Generate auth data files if login is enabled
+if ($loginEnabled) {
+    echo "Generando archivos de datos de autenticación...\n";
+
+    // Helper function to initialize SQLite DB (needed for build)
+    function initSqliteDbForBuild($path) {
+        $db = new PDO('sqlite:' . $path);
+        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        $db->exec('CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            role TEXT NOT NULL CHECK(role IN ("admin","user")) DEFAULT "user",
+            remember_token TEXT DEFAULT NULL,
+            remember_expires TEXT DEFAULT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )');
+
+        return $db;
+    }
+
+    $adminHash = password_hash($adminPass, PASSWORD_DEFAULT);
+
+    // Generate SQLite
+    $sqlitePath = $distDir . '/exporter.sqlite';
+    if (file_exists($sqlitePath)) {
+        unlink($sqlitePath);
+    }
+
+    require_once __DIR__ . '/vendor.phar';
+    initSqliteDbForBuild($sqlitePath);
+
+    $db = new PDO('sqlite:' . $sqlitePath);
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $stmt = $db->prepare('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)');
+    $stmt->execute([$adminUser, $adminHash, 'admin']);
+
+    // Generate TXT
+    $txtPath = $distDir . '/exporter.txt';
+    $adminRecord = json_encode([
+        'id' => 1,
+        'username' => $adminUser,
+        'password_hash' => $adminHash,
+        'role' => 'admin',
+        'remember_token' => null,
+        'remember_expires' => null,
+        'created_at' => date('c'),
+        'updated_at' => date('c')
+    ]);
+    file_put_contents($txtPath, $adminRecord . "\n");
+}
+
 echo "\n¡ÉXITO! Compilación terminada.\n";
-echo "=> Tu aplicación minificada está lista en: \n   " . $distDir . "\n";
+echo "=> Tu aplicación está lista en: \n   " . $distDir . "\n";
 echo "=> Ruta base configurada como: __DIR__" . ($basePathSuffix ? " . '$basePathSuffix'" : "") . "\n";
-echo "Solo necesitas copiar 'dist/exporter.php' y 'dist/vendor.phar' a tu servidor y listo.\n";
+echo "=> Login " . ($loginEnabled ? "HABILITADO" : "deshabilitado") . "\n";
+if ($loginEnabled) {
+    echo "=> Archivos generados:\n";
+    echo "   - exporter.php (aplicación)\n";
+    echo "   - vendor.phar (dependencias)\n";
+    echo "   - exporter.sqlite (base de datos)\n";
+    echo "   - exporter.txt (archivo de respaldo)\n";
+    echo "=> Usuario admin: " . $adminUser . "\n";
+}
+echo "=> Copia el contenido de 'dist/' a tu servidor.\n";

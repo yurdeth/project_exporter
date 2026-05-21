@@ -62,6 +62,7 @@ if ($action === 'browse') {
 // ─── API: Download Stream ───
 if ($action === 'download' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     set_time_limit(0);
+    if ($loginEnabled) session_write_close();
     ignore_user_abort(true);
 
     // Deshabilitar compresión de salida del servidor para evitar conflictos con el ZIP stream

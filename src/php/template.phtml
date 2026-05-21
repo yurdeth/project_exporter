@@ -1,11 +1,25 @@
 <?php
 $basePath = __DIR__;
-$folders = [];
-foreach (scandir($basePath) as $item) {
-    if ($item === '.' || $item === '..' || $item === 'index.php') continue;
-    if (is_dir($basePath . DIRECTORY_SEPARATOR . $item)) $folders[] = $item;
+$showMainPage = true;
+$currentUser = null;
+
+if ($loginEnabled) {
+    $currentUser = checkAuth();
+    if (!$currentUser) {
+        $showMainPage = false;
+    } else {
+        refreshSessionActivity();
+    }
 }
-sort($folders);
+
+$folders = [];
+if ($showMainPage) {
+    foreach (scandir($basePath) as $item) {
+        if ($item === '.' || $item === '..' || $item === 'index.php') continue;
+        if (is_dir($basePath . DIRECTORY_SEPARATOR . $item)) $folders[] = $item;
+    }
+    sort($folders);
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -18,10 +32,44 @@ sort($folders);
     </style>
 </head>
 <body>
+<?php if ($loginEnabled && !$showMainPage): ?>
+    <!-- VISTA LOGIN -->
+    <div class="login-page">
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <h1><span>&#128193;</span> Project Exporter</h1>
+            <div id="loginError" class="error-msg" style="display:none"></div>
+            <div class="form-group">
+                <label for="loginUser">Usuario</label>
+                <input type="text" id="loginUser" name="username" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="loginPass">Contraseña</label>
+                <input type="password" id="loginPass" name="password" required>
+            </div>
+            <div class="remember-row">
+                <input type="checkbox" id="loginRemember" name="remember">
+                <label for="loginRemember">Recordar sesión (7 días)</label>
+            </div>
+            <button type="submit" class="btn-login">Iniciar sesión</button>
+        </form>
+    </div>
+<?php else: ?>
+    <!-- VISTA PRINCIPAL -->
     <div class="top-bar">
         <h1>Proyectos <span class="count"><?= count($folders) ?></span></h1>
         <?php if (!empty($folders)): ?>
             <input type="text" class="search-input" id="searchInput" placeholder="Buscar proyecto..." oninput="filterProjects()">
+        <?php endif ?>
+        <?php if ($loginEnabled && $currentUser): ?>
+            <div class="user-bar">
+                <span class="username"><?= htmlspecialchars($currentUser['username']) ?></span>
+                <?php if ($currentUser['role'] === 'admin'): ?>
+                    <span class="badge">Admin</span>
+                    <button class="btn-icon" onclick="showUsersPanel()"><span>&#128100;</span> Usuarios</button>
+                <?php endif ?>
+                <button class="btn-icon" onclick="showChangePasswordForm()"><span>&#128274;</span></button>
+                <button class="btn-icon" onclick="handleLogout()"><span>&#128682;</span></button>
+            </div>
         <?php endif ?>
     </div>
 
@@ -80,6 +128,72 @@ sort($folders);
             <button id="progressClose" onclick="closeProgress()" style="display:none">Cerrar</button>
         </div>
     </div>
+
+    <?php if ($loginEnabled && $currentUser && $currentUser['role'] === 'admin'): ?>
+    <!-- Users management overlay -->
+    <div class="users-overlay" id="usersOverlay">
+        <div class="users-panel">
+            <div class="panel-header">
+                <h2><span>&#128100;</span> Gestión de Usuarios</h2>
+                <button class="panel-close" onclick="closeUsersPanel()">&times;</button>
+            </div>
+            <div class="panel-body">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Rol</th>
+                            <th>Creado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr><td colspan="4" style="text-align:center; color:#64748b;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="panel-footer">
+                <button class="btn-add" onclick="showCreateUserForm()">+ Agregar Usuario</button>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($loginEnabled && $currentUser): ?>
+    <!-- Change password overlay -->
+    <div class="password-overlay" id="passwordOverlay">
+        <div class="password-modal">
+            <h2><button class="modal-close" onclick="closeChangePasswordForm()">&times;</button> <span>&#128274;</span> Cambiar Contraseña</h2>
+            <form id="changePasswordForm" onsubmit="handleChangePassword(event)">
+                <div id="passwordError" class="error-msg" style="display:none"></div>
+                <div class="form-group">
+                    <label for="currentPassword">Contraseña actual</label>
+                    <input type="password" id="currentPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">Nueva contraseña</label>
+                    <input type="password" id="newPassword" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmar contraseña</label>
+                    <input type="password" id="confirmPassword" required minlength="6">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeChangePasswordForm()">Cancelar</button>
+                    <button type="submit" class="btn-save">Cambiar contraseña</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <?php endif; ?>
+<?php endif; ?>
+
+<?php if ($loginEnabled): ?>
+<script>
+var AUTH_ENABLED = true;
+var CURRENT_USER = <?= $currentUser ? json_encode($currentUser) : 'null' ?>;
+</script>
+<?php endif; ?>
 
 <script>
 {{JS}}

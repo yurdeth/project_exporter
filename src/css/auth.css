@@ -1,0 +1,520 @@
+/* ─── LOGIN PAGE ─── */
+
+.login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1rem;
+    background: #0f172a;
+}
+
+.login-page h1 {
+    margin: 0 0 2rem 0;
+    font-size: 1.75rem;
+    text-align: center;
+    color: #e2e8f0;
+}
+
+.login-page h1 span {
+    font-size: 2rem;
+}
+
+.login-page .form-group {
+    margin-bottom: 1rem;
+}
+
+.login-page label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.login-page input[type="text"],
+.login-page input[type="password"] {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9rem;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #e2e8f0;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.login-page input[type="text"]:focus,
+.login-page input[type="password"]:focus {
+    border-color: #6366f1;
+}
+
+.login-page .remember-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.login-page .remember-row input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
+}
+
+.login-page .remember-row label {
+    margin-bottom: 0;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.login-page .btn-login {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: white;
+    background: #6366f1;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.login-page .btn-login:hover {
+    background: #5558e3;
+}
+
+.login-page .error-msg {
+    min-height: 1.25rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 6px;
+    text-align: center;
+}
+
+/* ─── USER BAR ─── */
+
+.user-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-left: auto;
+}
+
+.user-bar .username {
+    font-size: 0.85rem;
+    color: #e2e8f0;
+}
+
+.user-bar .badge {
+    padding: 0.1rem 0.4rem;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: white;
+    background: #6366f1;
+    border-radius: 4px;
+}
+
+.user-bar .btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.6rem;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    background: none;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.user-bar .btn-icon:hover {
+    color: #e2e8f0;
+    background: #334155;
+}
+
+.user-bar .btn-icon span {
+    font-size: 0.9rem;
+}
+
+/* ─── USERS PANEL ─── */
+
+.users-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.85);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+}
+
+.users-overlay.active {
+    display: flex;
+}
+
+.users-panel {
+    width: 100%;
+    max-width: 600px;
+    max-height: 85vh;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.users-panel .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #334155;
+}
+
+.users-panel .panel-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #e2e8f0;
+}
+
+.users-panel .panel-header h2 span {
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.users-panel .panel-close {
+    padding: 0.25rem 0.5rem;
+    font-size: 1.25rem;
+    color: #94a3b8;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.users-panel .panel-close:hover {
+    color: #e2e8f0;
+    background: #334155;
+}
+
+.users-panel .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.users-panel .users-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.users-panel .users-table th {
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: #94a3b8;
+    background: #162032;
+    border-bottom: 1px solid #334155;
+}
+
+.users-panel .users-table td {
+    padding: 0.75rem;
+    color: #e2e8f0;
+    border-bottom: 1px solid #334155;
+}
+
+.users-panel .users-table tr:last-child td {
+    border-bottom: none;
+}
+
+.users-panel .users-table .role-badge {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    border-radius: 4px;
+}
+
+.users-panel .users-table .role-badge.admin {
+    color: white;
+    background: #6366f1;
+}
+
+.users-panel .users-table .role-badge.user {
+    color: #e2e8f0;
+    background: #475569;
+}
+
+.users-panel .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    color: #e2e8f0;
+    background: #334155;
+    border: 1px solid #475569;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 0.25rem;
+}
+
+.users-panel .btn-sm:hover {
+    background: #475569;
+}
+
+.users-panel .btn-sm.btn-danger {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.users-panel .btn-sm.btn-danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.users-panel .actions-cell {
+    white-space: nowrap;
+}
+
+.users-panel .panel-footer {
+    padding: 1rem;
+    border-top: 1px solid #334155;
+    text-align: center;
+}
+
+.users-panel .btn-add {
+    padding: 0.625rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: white;
+    background: #6366f1;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.users-panel .btn-add:hover {
+    background: #5558e3;
+}
+
+/* ─── INLINE EDIT FORM ─── */
+
+.users-panel .inline-form {
+    padding: 1rem;
+    margin: 0.5rem 0;
+    background: #162032;
+    border: 1px solid #334155;
+    border-radius: 8px;
+}
+
+.users-panel .inline-form-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+    margin-bottom: 0.75rem;
+}
+
+.users-panel .inline-form-row:last-child {
+    margin-bottom: 0;
+}
+
+.users-panel .inline-form-group {
+    flex: 1;
+}
+
+.users-panel .inline-form-group label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.users-panel .inline-form input[type="text"],
+.users-panel .inline-form input[type="password"],
+.users-panel .inline-form select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    color: #e2e8f0;
+    outline: none;
+}
+
+.users-panel .inline-form input:focus,
+.users-panel .inline-form select:focus {
+    border-color: #6366f1;
+}
+
+.users-panel .inline-form .btn-cancel {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    color: #e2e8f0;
+    background: #475569;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.users-panel .inline-form .btn-cancel:hover {
+    background: #64748b;
+}
+
+.users-panel .inline-form .btn-save {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+    background: #6366f1;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.users-panel .inline-form .btn-save:hover {
+    background: #5558e3;
+}
+
+/* ─── PASSWORD MODAL ─── */
+
+.password-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.85);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-overlay.active {
+    display: flex;
+}
+
+.password-modal {
+    width: 100%;
+    max-width: 380px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.password-modal h2 {
+    margin: 0 0 1.25rem 0;
+    font-size: 1.1rem;
+    color: #e2e8f0;
+}
+
+.password-modal h2 span {
+    margin-right: 0.5rem;
+}
+
+.password-modal .modal-close {
+    float: right;
+    padding: 0.25rem 0.5rem;
+    font-size: 1.25rem;
+    color: #94a3b8;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.password-modal .modal-close:hover {
+    color: #e2e8f0;
+    background: #334155;
+}
+
+.password-modal .form-group {
+    margin-bottom: 1rem;
+}
+
+.password-modal .form-group label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.password-modal input[type="password"] {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9rem;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #e2e8f0;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.password-modal input[type="password"]:focus {
+    border-color: #6366f1;
+}
+
+.password-modal .form-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+.password-modal .btn-cancel {
+    flex: 1;
+    padding: 0.625rem;
+    font-size: 0.9rem;
+    color: #e2e8f0;
+    background: #475569;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.password-modal .btn-cancel:hover {
+    background: #64748b;
+}
+
+.password-modal .btn-save {
+    flex: 1;
+    padding: 0.625rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+    background: #6366f1;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.password-modal .btn-save:hover {
+    background: #5558e3;
+}
+
+.password-modal .error-msg {
+    min-height: 1.25rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 6px;
+    text-align: center;
+}
