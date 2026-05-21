@@ -1,10 +1,88 @@
 <?php
+// ─── LOGGING ───
+
+function authLog($message, $level = 'INFO') {
+    $logFile = __DIR__ . '/error.log';
+
+    // Rotar log si es muy grande (>5MB)
+    if (file_exists($logFile) && filesize($logFile) > 5242880) {
+        $backupFile = __DIR__ . '/error.' . date('Y-m-d.His') . '.log';
+        @rename($logFile, $backupFile);
+    }
+
+    $timestamp = date('Y-m-d H:i:s');
+    $entry = '[' . $timestamp . '] [' . $level . '] ' . $message . "\n";
+
+    // Intentar escribir al log, silenciar errores si no se puede
+    @file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
+}
+
+// ─── ERROR HANDLING AUTOMÁTICO ───
+
+// Capturar warnings, notices, etc.
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    $errorTypes = [
+        E_ERROR => 'ERROR',
+        E_WARNING => 'WARNING',
+        E_PARSE => 'PARSE',
+        E_NOTICE => 'NOTICE',
+        E_CORE_ERROR => 'CORE_ERROR',
+        E_CORE_WARNING => 'CORE_WARNING',
+        E_COMPILE_ERROR => 'COMPILE_ERROR',
+        E_COMPILE_WARNING => 'COMPILE_WARNING',
+        E_USER_ERROR => 'USER_ERROR',
+        E_USER_WARNING => 'USER_WARNING',
+        E_USER_NOTICE => 'USER_NOTICE',
+        E_STRICT => 'STRICT',
+        E_RECOVERABLE_ERROR => 'RECOVERABLE_ERROR',
+        E_DEPRECATED => 'DEPRECATED',
+        E_USER_DEPRECATED => 'USER_DEPRECATED'
+    ];
+
+    $type = $errorTypes[$errno] ?? 'UNKNOWN';
+    $message = "$type: $errstr in $errfile:$errline";
+
+    // Solo loggear errores significativos (no notices deprecados)
+    if ($errno !== E_DEPRECATED && $errno !== E_USER_DEPRECATED) {
+        authLog($message, 'ERROR');
+    }
+
+    // No interferir con el error handling normal de PHP
+    return false;
+});
+
+// Capturar excepciones no capturadas
+set_exception_handler(function($exception) {
+    $message = 'UNCAUGHT EXCEPTION: ' . $exception->getMessage() .
+               ' in ' . $exception->getFile() . ':' . $exception->getLine() .
+               "\nStack trace:\n" . $exception->getTraceAsString();
+    authLog($message, 'FATAL');
+
+    // Mostrar error genérico al usuario
+    http_response_code(500);
+    echo json_encode(['error' => 'Error interno del servidor']);
+    exit;
+});
+
+// Capturar errores fatales (shutdown function)
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        $message = 'FATAL ERROR: ' . $error['message'] .
+                   ' in ' . $error['file'] . ':' . $error['line'];
+        authLog($message, 'FATAL');
+    }
+});
+
+// Log inicial al cargar el módulo (comentar en producción para reducir ruido)
+authLog("Auth module loaded, PHP version=" . PHP_VERSION . ", login_enabled=" . ($GLOBALS['loginEnabled'] ?? 'unknown'));
+
 // ─── CONFIGURACIÓN DE SESIÓN ───
 
 function authInit() {
     session_name('exporter_sess');
     session_set_cookie_params(0, '/', '', false, true);
-    session_start();
+    @session_start();
 }
 
 // ─── DETECCIÓN DE ALMACENAMIENTO ───
@@ -12,10 +90,17 @@ function authInit() {
 function getStorageType() {
     static $type = null;
     if ($type === null) {
-        if (extension_loaded('pdo_sqlite') && file_exists(__DIR__ . '/exporter.sqlite')) {
+        $hasSqlite = extension_loaded('pdo_sqlite');
+        $hasFile = file_exists(__DIR__ . '/exporter.sqlite');
+
+        authLog("Storage detection: pdo_sqlite=" . ($hasSqlite ? 'yes' : 'no') . ", sqlite_file=" . ($hasFile ? 'yes' : 'no'));
+
+        if ($hasSqlite && $hasFile) {
             $type = 'sqlite';
+            authLog("Using SQLite storage");
         } else {
             $type = 'txt';
+            authLog("Using TXT storage");
         }
     }
     return $type;
@@ -155,6 +240,8 @@ function createUser($username, $password, $role) {
 }
 
 function updateUser($id, $data) {
+    authLog("updateUser called: id=$id, data=" . json_encode($data));
+
     $users = getUsers();
     $index = null;
     for ($i = 0; $i < count($users); $i++) {
@@ -165,12 +252,16 @@ function updateUser($id, $data) {
     }
 
     if ($index === null) {
+        authLog("updateUser: user not found with id=$id");
         return false;
     }
+
+    $originalUsername = $users[$index]['username'];
 
     if (isset($data['username'])) {
         foreach ($users as $u) {
             if ($u['id'] != $id && $u['username'] === $data['username']) {
+                authLog("updateUser: username already exists");
                 return false;
             }
         }
@@ -182,39 +273,63 @@ function updateUser($id, $data) {
     }
 
     if (isset($data['password'])) {
-        $users[$index]['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
+        $newHash = password_hash($data['password'], PASSWORD_DEFAULT);
+        $users[$index]['password_hash'] = $newHash;
+        authLog("updateUser: password hashed for user " . $users[$index]['username']);
     }
 
     $users[$index]['updated_at'] = date('c');
 
-    if (getStorageType() === 'sqlite') {
-        $db = new PDO('sqlite:' . __DIR__ . '/exporter.sqlite');
-        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $storage = getStorageType();
+    authLog("updateUser: saving to storage=$storage");
 
-        $fields = ['updated_at = ?'];
-        $params = [date('c')];
+    if ($storage === 'sqlite') {
+        try {
+            $dbPath = __DIR__ . '/exporter.sqlite';
+            authLog("updateUser: sqlite path=$dbPath");
 
-        if (isset($data['username'])) {
-            $fields[] = 'username = ?';
-            $params[] = $data['username'];
+            if (!is_writable($dbPath)) {
+                authLog("updateUser: ERROR - sqlite file not writable!");
+            }
+
+            $db = new PDO('sqlite:' . $dbPath);
+            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            $fields = ['updated_at = ?'];
+            $params = [date('c')];
+
+            if (isset($data['username'])) {
+                $fields[] = 'username = ?';
+                $params[] = $data['username'];
+            }
+            if (isset($data['role'])) {
+                $fields[] = 'role = ?';
+                $params[] = $data['role'];
+            }
+            if (isset($data['password'])) {
+                $fields[] = 'password_hash = ?';
+                $params[] = $users[$index]['password_hash'];
+            }
+
+            $params[] = $id;
+
+            $sql = 'UPDATE users SET ' . implode(', ', $fields) . ' WHERE id = ?';
+            authLog("updateUser: sql=$sql, params=" . json_encode($params));
+
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+
+            authLog("updateUser: sqlite UPDATE executed successfully");
+        } catch (Exception $e) {
+            authLog("updateUser: EXCEPTION - " . $e->getMessage());
+            throw $e;
         }
-        if (isset($data['role'])) {
-            $fields[] = 'role = ?';
-            $params[] = $data['role'];
-        }
-        if (isset($data['password'])) {
-            $fields[] = 'password_hash = ?';
-            $params[] = $users[$index]['password_hash'];
-        }
-
-        $params[] = $id;
-
-        $stmt = $db->prepare('UPDATE users SET ' . implode(', ', $fields) . ' WHERE id = ?');
-        $stmt->execute($params);
     } else {
+        authLog("updateUser: saving to TXT file");
         saveUsers($users);
     }
 
+    authLog("updateUser: completed successfully");
     return true;
 }
 

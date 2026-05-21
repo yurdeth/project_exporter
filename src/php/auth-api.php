@@ -255,36 +255,55 @@ if ($action === 'user-delete') {
 if ($action === 'change-password') {
     header('Content-Type: application/json');
 
+    authLog("change-password: request received");
+
     $currentUser = getSessionUser();
     if (!$currentUser) {
+        authLog("change-password: user not authenticated");
         http_response_code(401);
         echo json_encode(['error' => 'No autenticado']);
         exit;
     }
 
+    authLog("change-password: user=" . $currentUser['username'] . " (id=" . $currentUser['id'] . ")");
+
     $currentPassword = $_POST['current_password'] ?? '';
     $newPassword = $_POST['new_password'] ?? '';
 
     if ($currentPassword === '' || $newPassword === '') {
+        authLog("change-password: missing passwords");
         http_response_code(400);
         echo json_encode(['error' => 'Contraseña actual y nueva son requeridas']);
         exit;
     }
 
     if (strlen($newPassword) < 6) {
+        authLog("change-password: new password too short");
         http_response_code(400);
         echo json_encode(['error' => 'La nueva contraseña debe tener al menos 6 caracteres']);
         exit;
     }
 
     $user = getUserById($currentUser['id']);
-    if (!$user || !password_verify($currentPassword, $user['password_hash'])) {
+    if (!$user) {
+        authLog("change-password: user not found in storage");
+        http_response_code(400);
+        echo json_encode(['error' => 'Usuario no encontrado']);
+        exit;
+    }
+
+    if (!password_verify($currentPassword, $user['password_hash'])) {
+        authLog("change-password: current password verification FAILED");
         http_response_code(400);
         echo json_encode(['error' => 'La contraseña actual es incorrecta']);
         exit;
     }
 
+    authLog("change-password: current password verified, calling changePassword");
+
     changePassword($currentUser['id'], $newPassword);
+
+    authLog("change-password: completed successfully");
 
     echo json_encode(['success' => true]);
     exit;
