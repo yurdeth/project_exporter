@@ -26,7 +26,11 @@ if ($showMainPage) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proyectos</title>
+    <title>Project Exporter</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
 {{CSS}}
     </style>
@@ -35,51 +39,107 @@ if ($showMainPage) {
 <?php if ($loginEnabled && !$showMainPage): ?>
     <!-- VISTA LOGIN -->
     <div class="login-page">
-        <form id="loginForm" onsubmit="handleLogin(event)">
-            <h1><span>&#128193;</span> Project Exporter</h1>
-            <div id="loginError" class="error-msg" style="display:none"></div>
-            <div class="form-group">
-                <label for="loginUser">Usuario</label>
-                <input type="text" id="loginUser" name="username" required autofocus>
-            </div>
-            <div class="form-group">
-                <label for="loginPass">Contraseña</label>
-                <input type="password" id="loginPass" name="password" required>
-            </div>
-            <div class="remember-row">
-                <input type="checkbox" id="loginRemember" name="remember">
-                <label for="loginRemember">Recordar sesión (7 días)</label>
-            </div>
-            <button type="submit" class="btn-login">Iniciar sesión</button>
-        </form>
+        <div class="login-container">
+            <form id="loginForm" onsubmit="handleLogin(event)" class="login-form">
+                <h1>
+                    <span class="icon icon-folder">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                    </span>
+                    Project Exporter
+                </h1>
+                <div id="loginError" class="error-msg"></div>
+                <div class="form-group">
+                    <label for="loginUser">Usuario</label>
+                    <input type="text" id="loginUser" name="username" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="loginPass">Contraseña</label>
+                    <input type="password" id="loginPass" name="password" required>
+                </div>
+                <div class="remember-row">
+                    <input type="checkbox" id="loginRemember" name="remember">
+                    <label for="loginRemember">Recordar sesión (7 días)</label>
+                </div>
+                <button type="submit" class="btn-login">
+                    Iniciar sesión
+                    <span class="icon" style="font-size: 1.1em;">
+                        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M10 17l5-5-5-5v10z"/></svg>
+                    </span>
+                </button>
+            </form>
+        </div>
     </div>
 <?php else: ?>
     <!-- VISTA PRINCIPAL -->
     <div class="top-bar">
-        <h1>Proyectos <span class="count"><?= count($folders) ?></span></h1>
-        <?php if (!empty($folders)): ?>
-            <input type="text" class="search-input" id="searchInput" placeholder="Buscar proyecto..." oninput="filterProjects()">
-        <?php endif ?>
-        <?php if ($loginEnabled && $currentUser): ?>
-            <div class="user-bar">
-                <span class="username"><?= htmlspecialchars($currentUser['username']) ?></span>
-                <?php if ($currentUser['role'] === 'admin'): ?>
-                    <span class="badge">Admin</span>
-                    <button class="btn-icon" onclick="showUsersPanel()"><span>&#128100;</span> Usuarios</button>
-                <?php endif ?>
-                <button class="btn-icon" onclick="showChangePasswordForm()"><span>&#128274;</span></button>
-                <button class="btn-icon" onclick="handleLogout()"><span>&#128682;</span></button>
+        <h1>
+            Proyectos <span class="count"><?= count($folders) ?></span>
+        </h1>
+        <div class="top-bar-right">
+            <?php if (!empty($folders)): ?>
+                <input type="text" class="search-input" id="searchInput" placeholder="Buscar proyecto..." oninput="filterProjects()">
+            <?php endif ?>
+            <!-- Theme Toggle (3-position slider) -->
+            <div class="theme-toggle-wrapper">
+                <div class="theme-toggle" id="themeToggle" title="Cambiar tema">
+                    <div class="theme-slider">
+                        <span class="theme-option" data-theme="light" onclick="setTheme('light')">
+                            <span class="icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2v2.95zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41-1.79 1.8z"/></svg>
+                            </span>
+                        </span>
+                        <span class="theme-option" data-theme="system" onclick="setTheme('system')">
+                            <span class="icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M9 10.5c.83 0 1.5-.67 1.5-1.5S9.83 7.5 9 7.5 7.5 8.17 7.5 9s.67 1.5 1.5 1.5zm6 3c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5zM12 18c2.03 0 3.8-1.11 4.75-2.75-.15-.25-.33-.48-.53-.69-1.03.98-2.42 1.59-3.97 1.59-1.95 0-3.68-.96-4.75-2.44-.28.15-.54.33-.78.53C7.3 16.14 9.48 18 12 18z"/></svg>
+                            </span>
+                        </span>
+                        <span class="theme-option" data-theme="dark" onclick="setTheme('dark')">
+                            <span class="icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
+                            </span>
+                        </span>
+                    </div>
+                </div>
             </div>
-        <?php endif ?>
+            <?php if ($loginEnabled && $currentUser): ?>
+                <div class="user-bar">
+                    <span class="badge"><?= htmlspecialchars($currentUser['username']) ?></span>
+                    <?php if ($currentUser['role'] === 'admin'): ?>
+                        <button class="btn-icon" onclick="showUsersPanel()" title="Gestión de usuarios">
+                            <span class="icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                            </span>
+                        </button>
+                    <?php endif ?>
+                    <button class="btn-icon" onclick="showChangePasswordForm()" title="Cambiar contraseña">
+                        <span class="icon">
+                            <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
+                        </span>
+                    </button>
+                    <button class="btn-icon" onclick="handleLogout()" title="Cerrar sesión">
+                        <span class="icon">
+                            <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                        </span>
+                    </button>
+                </div>
+            <?php endif ?>
+        </div>
     </div>
 
     <?php if (empty($folders)): ?>
-        <div class="empty">No se encontraron carpetas de proyectos.</div>
+        <div class="empty">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+            </span>
+            No se encontraron carpetas de proyectos.
+        </div>
     <?php else: ?>
         <div class="grid" id="projectGrid">
             <?php foreach ($folders as $name): ?>
                 <div class="card" data-name="<?= htmlspecialchars(strtolower($name)) ?>" onclick="openExplorer('<?= htmlspecialchars($name, ENT_QUOTES) ?>')">
-                    <span class="icon">&#128193;</span>
+                    <span class="icon icon-folder">
+                        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                    </span>
                     <div class="info">
                         <div class="name"><?= htmlspecialchars($name) ?></div>
                         <div class="action">Click para explorar y descargar</div>
@@ -93,8 +153,17 @@ if ($showMainPage) {
     <div class="overlay" id="explorerOverlay">
         <div class="explorer">
             <div class="explorer-header">
-                <h2><span>&#128193;</span> <span id="explorerTitle"></span></h2>
-                <button class="explorer-close" onclick="closeExplorer()">&times;</button>
+                <h2>
+                    <span class="icon icon-folder">
+                        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                    </span>
+                    <span id="explorerTitle"></span>
+                </h2>
+                <button class="explorer-close" onclick="closeExplorer()">
+                    <span class="icon icon-close">
+                        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                    </span>
+                </button>
             </div>
             <div class="breadcrumb" id="breadcrumb"></div>
             <div class="sort-bar">
@@ -114,10 +183,16 @@ if ($showMainPage) {
             </div>
             <div class="explorer-footer">
                 <span class="summary" id="explorerSummary"></span>
-                <button class="btn-download" id="btnDownload" onclick="startDownload()">Descargar</button>
+                <button class="btn-download" id="btnDownload" onclick="startDownload()">
+                    <span class="icon icon-download">
+                        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                    </span>
+                    Descargar
+                </button>
             </div>
         </div>
     </div>
+
     <!-- Progress modal -->
     <div class="overlay" id="progressOverlay">
         <div class="progress-modal">
@@ -134,8 +209,17 @@ if ($showMainPage) {
     <div class="users-overlay" id="usersOverlay">
         <div class="users-panel">
             <div class="panel-header">
-                <h2><span>&#128100;</span> Gestión de Usuarios</h2>
-                <button class="panel-close" onclick="closeUsersPanel()">&times;</button>
+                <h2>
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    </span>
+                    Gestión de Usuarios
+                </h2>
+                <button class="panel-close" onclick="closeUsersPanel()">
+                    <span class="icon icon-close">
+                        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                    </span>
+                </button>
             </div>
             <div class="panel-body">
                 <table class="users-table">
@@ -148,12 +232,17 @@ if ($showMainPage) {
                         </tr>
                     </thead>
                     <tbody id="usersTableBody">
-                        <tr><td colspan="4" style="text-align:center; color:#64748b;">Cargando...</td></tr>
+                        <tr><td colspan="4" class="loading-state">Cargando...</td></tr>
                     </tbody>
                 </table>
             </div>
             <div class="panel-footer">
-                <button class="btn-add" onclick="showCreateUserForm()">+ Agregar Usuario</button>
+                <button class="btn-add" onclick="showCreateUserForm()">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    </span>
+                    Agregar Usuario
+                </button>
             </div>
         </div>
     </div>
@@ -163,9 +252,19 @@ if ($showMainPage) {
     <!-- Change password overlay -->
     <div class="password-overlay" id="passwordOverlay">
         <div class="password-modal">
-            <h2><button class="modal-close" onclick="closeChangePasswordForm()">&times;</button> <span>&#128274;</span> Cambiar Contraseña</h2>
+            <h2>
+                <button class="modal-close" onclick="closeChangePasswordForm()">
+                    <span class="icon icon-close">
+                        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                    </span>
+                </button>
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor" style="width: 1em; height: 1em;"><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
+                </span>
+                Cambiar Contraseña
+            </h2>
             <form id="changePasswordForm" onsubmit="handleChangePassword(event)">
-                <div id="passwordError" class="error-msg" style="display:none"></div>
+                <div id="passwordError" class="error-msg"></div>
                 <div class="form-group">
                     <label for="currentPassword">Contraseña actual</label>
                     <input type="password" id="currentPassword" required>

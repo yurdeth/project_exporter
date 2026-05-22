@@ -84,6 +84,7 @@ if ($loginEnabled) {
 echo "Buscando componentes...\n";
 $css = trim(file_get_contents($srcDir . '/css/style.css'));
 $js = trim(file_get_contents($srcDir . '/js/app.js'));
+$themeJs = trim(file_get_contents($srcDir . '/js/theme.js'));
 
 // Remove <?php tags and $basePath declarations from source files
 $api = trim(str_replace('<?php', '', file_get_contents($srcDir . '/php/api.php')));
@@ -94,7 +95,10 @@ $template = file_get_contents($srcDir . '/php/template.phtml');
 $api = preg_replace('/^\s*\$basePath\s*=\s*[^;]+;\s*\n?/m', '', $api);
 $template = preg_replace('/^\s*\$basePath\s*=\s*[^;]+;\s*\n?/m', '', $template);
 
-// 2. Read auth components if login is enabled
+// 2. Concatenate JS with theme.js
+$js = $themeJs . "\n" . $js;
+
+// 3. Read auth components if login is enabled
 if ($loginEnabled) {
     echo "Cargando módulos de autenticación...\n";
     $auth = trim(str_replace('<?php', '', file_get_contents($srcDir . '/php/auth.php')));
@@ -107,14 +111,14 @@ if ($loginEnabled) {
     $js = $js . "\n" . $authJs;
 }
 
-// 3. Wrap HTML inside PHP properly with injected styles
+// 4. Wrap HTML inside PHP properly with injected styles
 echo "Empalmando módulos...\n";
 
 // Replace variables in template
 $html = str_replace('{{CSS}}', $css, $template);
 $html = str_replace('{{JS}}', $js, $html);
 
-// 4. Assemble the final php file
+// 5. Assemble the final php file
 $finalCode = "<?php\n\n";
 $finalCode .= "// ─── CONFIGURACIÓN DE RUTA BASE ───\n";
 $finalCode .= "\$basePath = __DIR__ . " . var_export($basePathSuffix, true) . ";\n";
@@ -139,14 +143,14 @@ $finalCode .= "// ─── API Lógica ───\n" . $api . "\n\n";
 $finalCode .= "?>\n"; // Close PHP before dumping template
 $finalCode .= $html;
 
-// 5. Save to dist directory
+// 6. Save to dist directory
 $distIndex = $distDir . '/exporter.php';
 file_put_contents($distIndex, $finalCode);
 
-// 6. Copy the phar locally into dist
+// 7. Copy the phar locally into dist
 copy(__DIR__ . '/vendor.phar', $distDir . '/vendor.phar');
 
-// 7. Generate auth data files if login is enabled
+// 8. Generate auth data files if login is enabled
 if ($loginEnabled) {
     echo "Generando archivos de datos de autenticación...\n";
 
