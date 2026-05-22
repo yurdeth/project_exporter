@@ -675,6 +675,30 @@
     display: none;
 }
 
+/* ─── CURRENT USER INDICATOR ─── */
+.users-panel .users-table tr.is-current-user td {
+    background: color-mix(in srgb, var(--color-primary) 5%, var(--color-bg-elevated));
+}
+
+.users-panel .users-table .username {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.users-panel .users-table .you-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: white;
+    background: var(--color-primary);
+    border-radius: var(--radius-full);
+}
+
 /* ─── RESPONSIVE ─── */
 @media (max-width: 640px) {
     .user-bar {

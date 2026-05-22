@@ -203,6 +203,16 @@ if ($action === 'user-update') {
         exit;
     }
 
+    $currentUser = getSessionUser();
+    $isOwnProfile = $currentUser && $currentUser['id'] == $id;
+
+    // Un admin no puede quitarse el rol admin a sí mismo
+    if ($isOwnProfile && $existing['role'] === 'admin' && $role === 'user') {
+        http_response_code(400);
+        echo json_encode(['error' => 'No puedes cambiar tu propio rol de administrador']);
+        exit;
+    }
+
     if ($existing['role'] === 'admin' && $role === 'user') {
         $adminCount = 0;
         foreach (getUsers() as $u) {

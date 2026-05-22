@@ -129,18 +129,34 @@ function renderUsersTable(users) {
     tbody.innerHTML = '';
 
     users.forEach(function(user) {
+        var isCurrentUser = CURRENT_USER && user.id === CURRENT_USER.id;
+
         var tr = document.createElement('tr');
+        if (isCurrentUser) {
+            tr.classList.add('is-current-user');
+        }
+
+        var usernameCell = '<span class="username">' + escHtml(user.username) + '</span>';
+        if (isCurrentUser) {
+            usernameCell += ' <span class="you-badge">Tú</span>';
+        }
+
+        var actions = '';
+        if (user.role !== 'admin' || isCurrentUser) {
+            actions += '<button class="btn-sm btn-edit" onclick="handleEditUser(' + user.id + ', \'' + escAttr(user.username) + '\', \'' + user.role + '\', ' + isCurrentUser + ')" title="Editar usuario"><span class="icon"><svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></span></button>';
+        }
+        if (user.role !== 'admin') {
+            actions += '<button class="btn-sm btn-danger" onclick="handleDeleteUser(' + user.id + ', \'' + escAttr(user.username) + '\')" title="Eliminar usuario"><span class="icon"><svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></span></button>';
+        }
+        if (actions === '') {
+            actions = '<span style="color: var(--color-text-tertiary); font-size: 0.75rem;">—</span>';
+        }
+
         tr.innerHTML =
-            '<td>' + escHtml(user.username) + '</td>' +
+            '<td>' + usernameCell + '</td>' +
             '<td><span class="role-badge ' + user.role + '">' + (user.role === 'admin' ? 'Admin' : 'User') + '</span></td>' +
             '<td>' + new Date(user.created_at).toLocaleDateString('es-ES') + '</td>' +
-            '<td class="actions-cell">' +
-                (user.role !== 'admin' ?
-                    '<button class="btn-sm btn-edit" onclick="handleEditUser(' + user.id + ', \'' + escAttr(user.username) + '\', \'' + user.role + '\')" title="Editar usuario"><span class="icon"><svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></span></button>' +
-                    '<button class="btn-sm btn-danger" onclick="handleDeleteUser(' + user.id + ', \'' + escAttr(user.username) + '\')" title="Eliminar usuario"><span class="icon"><svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></span></button>' :
-                    '<span style="color: var(--color-text-tertiary); font-size: 0.75rem;">—</span>'
-                ) +
-            '</td>';
+            '<td class="actions-cell">' + actions + '</td>';
         tbody.appendChild(tr);
     });
 }
@@ -222,15 +238,18 @@ function handleCreateUser() {
     });
 }
 
-function handleEditUser(id, currentUsername, currentRole) {
+function handleEditUser(id, currentUsername, currentRole, isOwnProfile) {
     hideInlineForm();
 
     var tbody = document.getElementById('usersTableBody');
     if (!tbody) return;
 
+    var canChangeRole = !isOwnProfile && isAdmin();
+
     var formRow = document.createElement('tr');
     formRow.id = 'inlineFormRow';
-    formRow.innerHTML =
+
+    var formContent =
         '<td colspan="4">' +
             '<div class="inline-form">' +
                 '<div class="inline-form-row">' +
@@ -241,30 +260,41 @@ function handleEditUser(id, currentUsername, currentRole) {
                     '<div class="inline-form-group">' +
                         '<label>Nueva contraseña (opcional)</label>' +
                         '<input type="password" id="editPassword" placeholder="Dejar vacío para no cambiar">' +
-                    '</div>' +
-                    // No se permite cambiar el rol
-                    // '<div class="inline-form-group">' +
-                    //     '<label>Rol</label>' +
-                    //     '<select id="editRole">' +
-                    //         '<option value="admin" ' + (currentRole === 'admin' ? 'selected' : '') + '>Admin</option>' +
-                    //         '<option value="user" ' + (currentRole === 'user' ? 'selected' : '') + '>User</option>' +
-                    //     '</select>' +
-                    // '</div>' +
+                    '</div>';
+
+    if (canChangeRole) {
+        formContent +=
+                    '<div class="inline-form-group">' +
+                        '<label>Rol</label>' +
+                        '<select id="editRole">' +
+                            '<option value="admin" ' + (currentRole === 'admin' ? 'selected' : '') + '>Admin</option>' +
+                            '<option value="user" ' + (currentRole === 'user' ? 'selected' : '') + '>User</option>' +
+                        '</select>' +
+                    '</div>';
+    } else {
+        formContent += '<input type="hidden" id="editRole" value="' + escAttr(currentRole) + '">';
+    }
+
+    formContent +=
                 '</div>' +
                 '<div class="inline-form-row">' +
                     '<button type="button" class="btn-cancel" onclick="hideInlineForm()">Cancelar</button>' +
-                    '<button type="button" class="btn-save" onclick="handleUpdateUser(' + id + ')">Guardar</button>' +
+                    '<button type="button" class="btn-save" onclick="handleUpdateUser(' + id + ', ' + isOwnProfile + ')">Guardar</button>' +
                 '</div>' +
             '</div>' +
         '</td>';
+
+    formRow.innerHTML = formContent;
 
     tbody.appendChild(formRow);
     document.getElementById('editUsername').focus();
 }
 
-function handleUpdateUser(id) {
+function handleUpdateUser(id, isOwnProfile) {
     var username = document.getElementById('editUsername').value.trim();
     var password = document.getElementById('editPassword').value;
+    var roleSelect = document.getElementById('editRole');
+    var role = roleSelect ? roleSelect.value : null;
 
     if (!username) {
         alert('El nombre de usuario es requerido');
@@ -282,7 +312,9 @@ function handleUpdateUser(id) {
     if (password !== '') {
         formData.append('password', password);
     }
-    // No se envía role — no se permite cambiar rol
+    if (role !== null) {
+        formData.append('role', role);
+    }
 
     fetch('?op=user-update', {
         method: 'POST',
@@ -291,7 +323,12 @@ function handleUpdateUser(id) {
     .then(function(response) { return response.json(); })
     .then(function(data) {
         if (data.success) {
-            loadUsers();
+            // Si editó su propio username, recargar la página para actualizar badges
+            if (isOwnProfile) {
+                window.location.reload();
+            } else {
+                loadUsers();
+            }
         } else if (data.error) {
             alert('Error: ' + data.error);
         }
