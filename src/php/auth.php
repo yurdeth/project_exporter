@@ -278,6 +278,16 @@ function updateUser($id, $data) {
         authLog("updateUser: password hashed for user " . $users[$index]['username']);
     }
 
+    if (array_key_exists('remember_token', $data)) {
+        $users[$index]['remember_token'] = $data['remember_token'];
+        authLog("updateUser: remember_token updated for user " . $users[$index]['username']);
+    }
+
+    if (array_key_exists('remember_expires', $data)) {
+        $users[$index]['remember_expires'] = $data['remember_expires'];
+        authLog("updateUser: remember_expires updated for user " . $users[$index]['username']);
+    }
+
     $users[$index]['updated_at'] = date('c');
 
     $storage = getStorageType();
@@ -309,6 +319,14 @@ function updateUser($id, $data) {
             if (isset($data['password'])) {
                 $fields[] = 'password_hash = ?';
                 $params[] = $users[$index]['password_hash'];
+            }
+            if (array_key_exists('remember_token', $data)) {
+                $fields[] = 'remember_token = ?';
+                $params[] = $data['remember_token'];
+            }
+            if (array_key_exists('remember_expires', $data)) {
+                $fields[] = 'remember_expires = ?';
+                $params[] = $data['remember_expires'];
             }
 
             $params[] = $id;
