@@ -150,6 +150,14 @@ file_put_contents($distIndex, $finalCode);
 // 7. Copy the phar locally into dist
 copy(__DIR__ . '/vendor.phar', $distDir . '/vendor.phar');
 
+// 7.5 Create empty error.log file
+echo "Creando archivo de logs...\n";
+$errorLogPath = $distDir . '/error.log';
+if (!file_exists($errorLogPath)) {
+    file_put_contents($errorLogPath, "# Project Exporter Error Log\n");
+    chmod($errorLogPath, 0666);
+}
+
 // 8. Generate auth data files if login is enabled
 if ($loginEnabled) {
     echo "Generando archivos de datos de autenticación...\n";
@@ -214,6 +222,12 @@ if ($loginEnabled) {
     echo "   - vendor.phar (dependencias)\n";
     echo "   - exporter.sqlite (base de datos)\n";
     echo "   - exporter.txt (archivo de respaldo)\n";
+    echo "   - error.log (registro de errores)\n";
     echo "=> Usuario admin: " . $adminUser . "\n";
+} else {
+    echo "=> Archivos generados:\n";
+    echo "   - exporter.php (aplicación)\n";
+    echo "   - vendor.phar (dependencias)\n";
+    echo "   - error.log (registro de errores)\n";
 }
 echo "=> Copia el contenido de 'dist/' a tu servidor.\n";
