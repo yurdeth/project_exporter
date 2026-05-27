@@ -1,12 +1,13 @@
 {
-    "name": "project-exporter/dependencies",
-    "description": "Dependencias para Project Exporter - PHP 7.1+",
-    "type": "project",
-    "require": {
-        "maennchen/zipstream-php": "^0.5",
-        "psr/http-message": "^1.0"
-    },
-    "config": {
-        "platform-check": false
-    }
+  "name": "project-exporter/dependencies",
+  "description": "Dependencias para Project Exporter - PHP 7.1+",
+  "type": "project",
+  "require": {
+    "maennchen/zipstream-php": "^0.5",
+    "psr/http-message": "^1.0",
+    "ext-pdo": "*"
+  },
+  "config": {
+    "platform-check": false
+  }
 }

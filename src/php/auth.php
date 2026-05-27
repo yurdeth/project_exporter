@@ -123,7 +123,14 @@ function getUsers() {
         if (!file_exists($path)) {
             return [];
         }
-        $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+        $fp = fopen($path, 'r');
+        if (flock($fp, LOCK_SH)) {
+            $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            flock($fp, LOCK_UN);
+        }
+        fclose($fp);
+
         $users = [];
         foreach ($lines as $line) {
             $user = json_decode($line, true);
