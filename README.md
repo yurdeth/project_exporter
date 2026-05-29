@@ -49,14 +49,14 @@ src/
 **Sin login:**
 ```
 dist/
-├── exporter.php  - Aplicacion completa compilada
+├── index.php  - Aplicacion completa compilada
 └── vendor.phar   - Dependencias empaquetadas (ZipStream)
 ```
 
 **Con login (`php exporter --login`):**
 ```
 dist/
-├── exporter.php      - Aplicacion completa con login
+├── index.php      - Aplicacion completa con login
 ├── vendor.phar       - Dependencias empaquetadas
 ├── exporter.sqlite   - Base de datos SQLite (usuarios)
 └── exporter.txt      - Archivo de respaldo JSONL (usuarios)
@@ -123,7 +123,7 @@ El resultado es una pagina HTML autocontenida con estilos y scripts embebidos.
 
 ### Paso 4: Generacion del archivo final
 
-El script genera el archivo `dist/exporter.php` que contiene:
+El script genera el archivo `dist/index.php` que contiene:
 
 - La logica PHP completa del backend
 - Las funciones auxiliares
@@ -160,7 +160,7 @@ Genera una aplicacion con login y crea el usuario administrador inicial.
 
 Los archivos se generan en el directorio `dist/`:
 
-- `exporter.php` — Aplicacion completa (con o sin login segun compilacion)
+- `index.php` — Aplicacion completa (con o sin login segun compilacion)
 - `vendor.phar` — Dependencias de ZipStream
 - `exporter.sqlite` — Base de datos SQLite (solo con --login)
 - `exporter.txt` — Archivo de respaldo JSONL (solo con --login)
@@ -172,11 +172,11 @@ Los archivos se generan en el directorio `dist/`:
 Una vez compilado, el directorio `dist/` contiene:
 
 **Sin login:**
-1. `exporter.php` - La aplicacion completa
+1. `index.php` - La aplicacion completa
 2. `vendor.phar` - Las dependencias
 
 **Con login:**
-1. `exporter.php` - La aplicacion completa con sistema de autenticacion
+1. `index.php` - La aplicacion completa con sistema de autenticacion
 2. `vendor.phar` - Las dependencias
 3. `exporter.sqlite` - Base de datos de usuarios
 4. `exporter.txt` - Archivo de respaldo de usuarios
@@ -185,11 +185,11 @@ Una vez compilado, el directorio `dist/` contiene:
 
 #### Configuracion de ruta base
 
-La variable `$basePath` en `exporter.php` determina el directorio raiz que sera explorado por la aplicacion. Por defecto, se establece en `__DIR__`, que apunta al directorio donde reside el archivo.
+La variable `$basePath` en `index.php` determina el directorio raiz que sera explorado por la aplicacion. Por defecto, se establece en `__DIR__`, que apunta al directorio donde reside el archivo.
 
 Para modificar el directorio a explorar, puede:
 1. Editar la variable `$basePathSuffix` en `exporter` antes de compilar, o
-2. Editar la linea correspondiente en `dist/exporter.php` despues de compilar:
+2. Editar la linea correspondiente en `dist/index.php` despues de compilar:
 
 ```php
 $basePath = __DIR__; // Apunta al propio directorio
@@ -217,7 +217,7 @@ $basePath = __DIR__ . '/proyectos'; // Subcarpeta proyectos
 │   ├── exporter.sqlite
 │   └── exporter.txt
 └── public/                # 755 usuario:usuario (solo lectura)
-    ├── exporter.php
+    ├── index.php
     └── vendor.phar
 ```
 
@@ -226,14 +226,14 @@ El directorio `data/` es donde se escriben los archivos de datos y logs, separad
 ### Instalacion en el servidor
 
 1. Copie los archivos de `dist/` al servidor
-2. Coloque `exporter.php` y `vendor.phar` en la ubicacion deseada
+2. Coloque `index.php` y `vendor.phar` en la ubicacion deseada
 3. Si usa login, coloque tambien `exporter.sqlite` y `exporter.txt`
 4. Configure los permisos apropiados (ver seccion anterior)
 5. Configure el servidor web para servir el archivo PHP
 
 ### Verificar instalacion
 
-Acceda a la URL donde instalo `exporter.php`. Si compilo con login, vera la pantalla de inicio de sesion. Si no, vera directamente la lista de proyectos.
+Acceda a la URL donde instalo `index.php`. Si compilo con login, vera la pantalla de inicio de sesion. Si no, vera directamente la lista de proyectos.
 
 ### Servidor web
 
@@ -303,7 +303,7 @@ La aplicacion detecta en runtime cual usar, sin configuracion manual.
 
 ### Logging
 
-El sistema genera automaticamente un archivo `error.log` en el mismo directorio que `exporter.php`:
+El sistema genera automaticamente un archivo `error.log` en el mismo directorio que `index.php`:
 
 **Informacion capturada:**
 - Carga de modulo (PHP version, login enabled)
@@ -380,7 +380,7 @@ Los tokens utilizados para el seguimiento del progreso se sanitizan mediante exp
 
 ### En produccion
 
-- Mantener `exporter.php` y `vendor.phar` fuera del document root si es posible
+- Mantener `index.php` y `vendor.phar` fuera del document root si es posible
 - Usar HTTPS para proteger credenciales en transito
 - Configurar permisos de directorio apropiadamente (seccion Permisos)
 - Rotar periodicamente `error.log` (se hace automatico >5MB)

@@ -11,7 +11,7 @@
 </FilesMatch>
 
 # Permitir solo el punto de entrada principal
-<Files "exporter.php">
+<Files "index.php">
     Order allow,deny
     Allow from all
 </Files>

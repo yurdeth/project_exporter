@@ -144,7 +144,7 @@ $finalCode .= "?>\n"; // Close PHP before dumping template
 $finalCode .= $html;
 
 // 6. Save to dist directory
-$distIndex = $distDir . '/exporter.php';
+$distIndex = $distDir . '/index.php';
 file_put_contents($distIndex, $finalCode);
 
 // 7. Copy .htaccess to dist for security
@@ -224,7 +224,7 @@ echo "=> Ruta base configurada como: __DIR__" . ($basePathSuffix ? " . '$basePat
 echo "=> Login " . ($loginEnabled ? "HABILITADO" : "deshabilitado") . "\n";
 if ($loginEnabled) {
     echo "=> Archivos generados:\n";
-    echo "   - exporter.php (aplicación)\n";
+    echo "   - index.php (aplicación)\n";
     echo "   - vendor.phar (dependencias)\n";
     echo "   - exporter.sqlite (base de datos)\n";
     echo "   - exporter.txt (archivo de respaldo)\n";
@@ -233,7 +233,7 @@ if ($loginEnabled) {
     echo "=> Usuario admin: " . $adminUser . "\n";
 } else {
     echo "=> Archivos generados:\n";
-    echo "   - exporter.php (aplicación)\n";
+    echo "   - index.php (aplicación)\n";
     echo "   - vendor.phar (dependencias)\n";
     echo "   - .htaccess (seguridad)\n";
     echo "   - error.log (registro de errores)\n";
