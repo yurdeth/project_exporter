@@ -221,7 +221,7 @@ body {
     top: 1rem;
     right: 1rem;
     padding: 0.75rem 1rem;
-    background: color-mix(in srgb, var(--color-bg-elevated) 95%, transparent);
+    background: color-mix(in srgb, var(--color-bg-elevated) 50%, transparent);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);

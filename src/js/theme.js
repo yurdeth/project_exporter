@@ -70,7 +70,7 @@
                 notification.classList.add('dismissing');
                 setTimeout(() => notification.remove(), 280);
             }
-        }, 1000);
+        }, 500);
     }
 
     // Initialize
