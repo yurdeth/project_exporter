@@ -1,0 +1,23 @@
+# Denegar acceso a archivos sensibles por extensión
+<FilesMatch "\.(phar|sqlite|db|txt|log|md)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Denegar acceso a archivos específicos por nombre
+<FilesMatch "^(exporter\.(sqlite|txt)|vendor\.phar|error\.log)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Permitir solo el punto de entrada principal
+<Files "exporter.php">
+    Order allow,deny
+    Allow from all
+</Files>
+
+# Deshabilitar listado de directorios
+Options -Indexes
+
+# Deshabilitar signature de servidor
+ServerSignature Off
